@@ -2,66 +2,80 @@ name: Render Quarto Website
 
 on:
   schedule:
-    - cron: "*/60 * * * *"  # every hour
-  workflow_dispatch:
+    - cron: '0 * * * *'  # every hour
+  workflow_dispatch:  # manual trigger
 
 jobs:
-  build-deploy:
+  render:
     runs-on: ubuntu-latest
 
-    env:
-      R_LIBS_USER: ${{ github.workspace }}/.R/library
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    # 1️⃣ Checkout repository
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Install system libraries
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libcurl4-openssl-dev \
-            libssl-dev \
-            libxml2-dev \
-            libfontconfig1-dev \
-            libfreetype6-dev \
-            libharfbuzz-dev \
-            libfribidi-dev \
-            pkg-config \
-            libpng-dev \
-            libtiff5-dev \
-            libcairo2-dev
+    # 2️⃣ Install system dependencies
+    - name: Install system libraries
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          libcurl4-openssl-dev \
+          libssl-dev \
+          libxml2-dev \
+          libcairo2-dev \
+          libfontconfig1-dev \
+          libfreetype6-dev \
+          libpng-dev
 
-      - name: Setup R
-        uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: '4.4.1'
+    # 3️⃣ Setup R
+    - name: Setup R
+      uses: r-lib/actions/setup-r@v2
+      with:
+        r-version: '4.3.1'
 
-      - name: Setup Quarto
-        uses: quarto-dev/quarto-actions/setup@v2
+    # 4️⃣ Setup Quarto
+    - name: Setup Quarto
+      uses: quarto-dev/quarto-actions/setup@v2
 
-      - name: Cache R packages
-        uses: actions/cache@v3
-        with:
-          path: ${{ env.R_LIBS_USER }}
-          key: ${{ runner.os }}-r-packages-${{ hashFiles('**/*.qmd') }}
-          restore-keys: |
-            ${{ runner.os }}-r-packages-
+    # 5️⃣ Cache R packages
+    - name: Cache R packages
+      uses: actions/cache@v3
+      with:
+        path: ${{ env.R_LIBS_USER }}
+        key: ${{ runner.os }}-r-packages-${{ hashFiles('**/*.qmd', '_quarto.yml') }}
+        restore-keys: |
+          ${{ runner.os }}-r-packages-
 
-      - name: Install required R packages
-        run: |
-          Rscript -e "install.packages(c(
-            'tidyverse',
-            'plotly',
-            'googlesheets4'
-          ), lib = Sys.getenv('R_LIBS_USER'), dependencies = TRUE, repos='https://cloud.r-project.org')"
+    # 6️⃣ Install required R packages
+    - name: Install R packages
+      run: |
+        packages <- c(
+          "googlesheets4",
+          "dplyr",
+          "ggplot2",
+          "tidyr",
+          "tibble",
+          "stringr",
+          "forcats",
+          "purrr",
+          "plotly",
+          "htmlwidgets"
+        )
+        installed <- rownames(installed.packages())
+        to_install <- setdiff(packages, installed)
+        if(length(to_install) > 0) {
+          install.packages(to_install, repos="https://cloud.r-project.org", dependencies = TRUE)
+        }
 
-      - name: Render Quarto website
-        run: quarto render
+    # 7️⃣ Render Quarto site (will output to docs/)
+    - name: Render Quarto
+      run: |
+        quarto render . --to html
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
+    # 8️⃣ Deploy docs/ to GitHub Pages
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs
 
