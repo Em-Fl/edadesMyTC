@@ -2,8 +2,8 @@ name: Auto-render Quarto Website
 
 on:
   schedule:
-    - cron: "*/60 * * * *"
-  workflow_dispatch:
+    - cron: "*/60 * * * *"  # every 60 minutes
+  workflow_dispatch:        # manual trigger
 
 jobs:
   build-deploy:
@@ -13,9 +13,11 @@ jobs:
       R_LIBS_USER: ${{ github.workspace }}/.R/library
 
     steps:
+      # 1️⃣ Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2️⃣ Install system libraries needed for R packages
       - name: Install minimal system libraries
         run: |
           sudo apt-get update
@@ -27,16 +29,21 @@ jobs:
             libfreetype6-dev \
             libharfbuzz-dev \
             libfribidi-dev \
-            pkg-config
+            pkg-config \
+            libpng-dev \
+            libcairo2-dev
 
+      # 3️⃣ Setup R
       - name: Setup R
         uses: r-lib/actions/setup-r@v2
         with:
           r-version: '4.4.1'
 
+      # 4️⃣ Setup Quarto
       - name: Setup Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
+      # 5️⃣ Cache R packages
       - name: Cache R packages
         uses: actions/cache@v3
         with:
@@ -45,28 +52,30 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-r-packages-
 
+      # 6️⃣ Install remotes if missing
       - name: Install remotes if missing
         run: Rscript -e 'if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes", lib = Sys.getenv("R_LIBS_USER"))'
 
-      - name: Install R dependencies from DESCRIPTION with binary fallback
+      # 7️⃣ Install R dependencies individually (avoiding tidyverse meta-package compilation issues)
+      - name: Install R dependencies individually
         run: |
           Rscript -e '
-          options(pkgType = "binary")  # try binaries first
-          pkgs <- tryCatch(
-            remotes::install_deps(dependencies = TRUE, lib = Sys.getenv("R_LIBS_USER")),
-            error = function(e) {
-              message("Binary install failed, falling back to source...")
-              options(pkgType = "source")
-              remotes::install_deps(dependencies = TRUE, lib = Sys.getenv("R_LIBS_USER"))
-            }
+          options(pkgType="binary")  # prefer binaries on Linux
+          pkgs <- c(
+            "ggplot2", "dplyr", "tidyr", "readr", "purrr",
+            "tibble", "stringr", "forcats", "plotly", "googlesheets4"
           )
+          install.packages(pkgs, lib = Sys.getenv("R_LIBS_USER"))
           '
 
+      # 8️⃣ Render Quarto website
       - name: Render Quarto website
         run: quarto render
 
+      # 9️⃣ Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs
+
