@@ -36,18 +36,23 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-r-packages-
 
-      # 5️⃣ Install R dependencies from DESCRIPTION
-      - name: Install R dependencies
-        run: |
-          Rscript -e 'dir.create(Sys.getenv("R_LIBS_USER"), recursive = TRUE, showWarnings = FALSE)'
-          Rscript -e 'if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes", lib = Sys.getenv("R_LIBS_USER"))'
-          Rscript -e 'remotes::install_deps(dependencies = TRUE, lib = Sys.getenv("R_LIBS_USER"))'
+      # 5️⃣ Install remotes if missing
+      - name: Install remotes
+        run: Rscript -e 'if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes", lib = Sys.getenv("R_LIBS_USER"))'
 
-      # 6️⃣ Render Quarto website
+      # 6️⃣ Install R dependencies from DESCRIPTION
+      - name: Install R dependencies
+        run: Rscript -e 'remotes::install_deps(dependencies = TRUE, lib = Sys.getenv("R_LIBS_USER"))'
+
+      # 7️⃣ Explicitly install critical packages (safeguard)
+      - name: Install critical packages
+        run: Rscript -e 'install.packages(c("googlesheets4","tidyverse","plotly"), lib = Sys.getenv("R_LIBS_USER"))'
+
+      # 8️⃣ Render Quarto website
       - name: Render Quarto website
         run: quarto render
 
-      # 7️⃣ Deploy to GitHub Pages
+      # 9️⃣ Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
