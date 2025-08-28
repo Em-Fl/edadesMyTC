@@ -2,12 +2,15 @@ name: Auto-render Quarto Website
 
 on:
   schedule:
-    - cron: "*/60 * * * *"  # every 5 minutes
+    - cron: "*/60 * * * *"  # every 60 minutes
   workflow_dispatch:        # allows manual trigger
 
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
+
+    env:
+      R_LIBS_USER: ${{ github.workspace }}/.R/library
 
     steps:
       # 1️⃣ Checkout repo
@@ -35,7 +38,17 @@ jobs:
 
       # 5️⃣ Install R dependencies from DESCRIPTION
       - name: Install R dependencies
-        run: Rscript -e 'remotes::install_deps(dependencies = TRUE)'
+        run: |
+          # create library folder if it doesn't exist
+          dir.create(Sys.getenv("R_LIBS_USER"), recursive = TRUE, showWarnings = FALSE)
+          
+          # install remotes if missing
+          if (!requireNamespace("remotes", quietly = TRUE)) {
+            install.packages("remotes", lib = Sys.getenv("R_LIBS_USER"))
+          }
+          
+          # install all packages from DESCRIPTION
+          Rscript -e 'remotes::install_deps(dependencies = TRUE, lib = Sys.getenv("R_LIBS_USER"))'
 
       # 6️⃣ Render Quarto website
       - name: Render Quarto website
@@ -47,3 +60,4 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs
+
