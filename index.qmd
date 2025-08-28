@@ -1,0 +1,192 @@
+---
+title: "¿Qué tan bueno sos estimando la edad de las personas?"
+format: html
+---
+
+# Bienvenidos a la actividad 'Adivinando edades'
+
+## A continuación encontrarás un conjunto de fotos. Selecciona los links para indicar qué edad piensas que tienen las personas
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# --- Load packages ---
+library(googlesheets4)
+library(tidyverse)
+library(plotly)
+
+# --- Load data from Google Sheets ---
+sheet_url <- "https://docs.google.com/spreadsheets/d/1Af5_4F3JKp_iCsAC8mxVnmZp8_DdzicnO7Af384txZ4"
+
+# Skip authentication for public sheet
+gs4_deauth()
+
+# Read sheets and keep only initials and age
+dc_data <- read_sheet(sheet_url, sheet = "DC") %>%
+  select(`Tus iniciales (dos letras)`, `¿Qué edad tiene?`) %>%
+  mutate(
+    `Tus iniciales (dos letras)` = as.character(`Tus iniciales (dos letras)`),
+    `¿Qué edad tiene?` = as.character(`¿Qué edad tiene?`),
+    Group = "DC"
+  )
+
+cm_data <- read_sheet(sheet_url, sheet = "CM") %>%
+  select(`Tus iniciales (dos letras)`, `¿Qué edad tiene?`) %>%
+  mutate(
+    `Tus iniciales (dos letras)` = as.character(`Tus iniciales (dos letras)`),
+    `¿Qué edad tiene?` = as.character(`¿Qué edad tiene?`),
+    Group = "CM"
+  )
+
+# Combine
+all_data <- bind_rows(dc_data, cm_data) %>%
+  rename(
+    initials = `Tus iniciales (dos letras)`,
+    age = `¿Qué edad tiene?`
+  ) %>%
+  mutate(age = as.numeric(age)) %>%
+  filter(!is.na(age), age > 0, age < 120)
+
+# --- Create combined plots for each group ---
+create_plots <- function(df, title){
+  mean_age <- mean(df$age, na.rm = TRUE)
+  median_age <- median(df$age, na.rm = TRUE)
+  var_age <- var(df$age, na.rm = TRUE)
+  sd_age <- sd(df$age, na.rm = TRUE)
+  
+  # Format values nicely
+  mean_txt <- round(mean_age, 1)
+  median_txt <- round(median_age, 1)
+  var_txt <- round(var_age, 1)
+  sd_txt <- round(sd_age, 1)
+
+  # Histogram without legend
+  hist <- plot_ly(
+    df, x = ~age, type = "histogram",
+    marker = list(color = "#9bfa82", line = list(color = "#6446faff", width = 1)),
+    showlegend = FALSE
+  )
+
+  # Compute histogram bins to get max height
+  hist_counts <- hist(df$age, plot = FALSE)
+  max_count <- max(hist_counts$counts)
+
+  # Add mean and median lines as scatter traces (so they appear in legend)
+  hist <- hist %>%
+    add_trace(
+      x = c(mean_age, mean_age),
+      y = c(0, max_count),
+      type = "scatter",
+      mode = "lines",
+      line = list(color = "#ff6b6b", width = 3),
+      name = paste0("Media: ", mean_txt),
+      showlegend = TRUE
+    ) %>%
+    add_trace(
+      x = c(median_age, median_age),
+      y = c(0, max_count),
+      type = "scatter",
+      mode = "lines",
+      line = list(color = "#6446faff", width = 3),
+      name = paste0("Mediana: ", median_txt),
+      showlegend = TRUE
+    ) %>%
+    layout(
+      bargap = 0,
+      xaxis = list(
+        title = "Edad",
+        showgrid = TRUE,
+        gridcolor = "#d3d3d3",
+        gridwidth = 1,
+        tickfont = list(size = 14)
+      ),
+      yaxis = list(
+        title = "Frecuencia",
+        showgrid = TRUE,
+        gridcolor = "#d3d3d3",
+        gridwidth = 1,
+        tickfont = list(size = 14)
+      ),
+      legend = list(
+        font = list(size = 14),
+        itemsizing = "constant"),
+      # Add SD and variance as annotation in top-left
+      annotations = list(
+        x = 0.95, y = 0.95, xref = "paper", yref = "paper",
+        text = paste0("Varianza: ", var_txt, "<br>DE: ", sd_txt),
+        showarrow = FALSE,
+        font = list(size = 14, color = "#333333"),
+        align = "left"
+      )
+    )
+
+  # Horizontal boxplot without legend
+  box <- plot_ly(
+    df, x = ~age, type = "box", boxpoints = "all",
+    jitter = 0.3, orientation = "h",
+    fillcolor = "#9bfa82",
+    marker = list(color = "#6446faff"),
+    line = list(color = "#6446faff"),
+    showlegend = FALSE,
+    name = ""
+  ) %>%
+  layout(
+    xaxis = list(
+      title = "Edad",
+      showgrid = TRUE,
+      gridcolor = "#d3d3d3",
+      gridwidth = 1,
+      tickfont = list(size = 14)
+    ),
+    yaxis = list(
+      showticklabels = FALSE
+    )
+  )
+
+  # Stack vertically
+  subplot(hist, box, nrows = 2, margin = 0.07, shareX = TRUE, titleX = TRUE) %>%
+    layout(
+      title = title
+    )
+}
+
+# Generate plots
+plots_dc <- create_plots(all_data %>% filter(Group=="DC"), "DC: Distribución de edades")
+plots_cm <- create_plots(all_data %>% filter(Group=="CM"), "CM: Distribución de edades")
+
+
+```
+
+------------------------------------------------------------------------
+
+## DC
+
+![DC](images/DC_19.jpg)
+
+[¿Qué edad tiene DC?](https://docs.google.com/forms/d/e/1FAIpQLSeRYPxegq2BLlMnuyNononGdwGwAtuFgRudS3lgUBV5M_xvZw/viewform?usp=pp_url&entry.1674617589)
+
+<details>
+
+<summary>Mostrar gráficos de todas las estimaciones</summary>
+
+```{r, echo=FALSE}
+plots_dc
+```
+
+</details>
+
+------------------------------------------------------------------------
+
+## CM
+
+![CM](images/CM_25.jpg)
+
+[¿Qué edad tiene CM?](https://docs.google.com/forms/d/e/1FAIpQLScoD5wOyHaf8Rb26P01ogBlIpkBkssDnjvRbMHtGgYu9wKU-w/viewform?usp=pp_url&entry.1674617589)
+
+<details>
+
+<summary>Mostrar gráficos de todas las estimaciones</summary>
+
+```{r, echo=FALSE}
+plots_cm
+```
+
+</details>
