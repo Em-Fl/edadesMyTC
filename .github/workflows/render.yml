@@ -1,9 +1,9 @@
-name: Auto-render Quarto Website
+name: Render Quarto Website
 
 on:
   schedule:
-    - cron: "*/60 * * * *"  # every 60 minutes
-  workflow_dispatch:        # manual trigger
+    - cron: "*/60 * * * *"  # every hour
+  workflow_dispatch:
 
 jobs:
   build-deploy:
@@ -13,12 +13,10 @@ jobs:
       R_LIBS_USER: ${{ github.workspace }}/.R/library
 
     steps:
-      # 1️⃣ Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Install system libraries needed for R packages
-      - name: Install minimal system libraries
+      - name: Install system libraries
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -31,48 +29,36 @@ jobs:
             libfribidi-dev \
             pkg-config \
             libpng-dev \
+            libtiff5-dev \
             libcairo2-dev
 
-      # 3️⃣ Setup R
       - name: Setup R
         uses: r-lib/actions/setup-r@v2
         with:
           r-version: '4.4.1'
 
-      # 4️⃣ Setup Quarto
       - name: Setup Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
-      # 5️⃣ Cache R packages
       - name: Cache R packages
         uses: actions/cache@v3
         with:
           path: ${{ env.R_LIBS_USER }}
-          key: ${{ runner.os }}-r-packages-${{ hashFiles('DESCRIPTION') }}
+          key: ${{ runner.os }}-r-packages-${{ hashFiles('**/*.qmd') }}
           restore-keys: |
             ${{ runner.os }}-r-packages-
 
-      # 6️⃣ Install remotes if missing
-      - name: Install remotes if missing
-        run: Rscript -e 'if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes", lib = Sys.getenv("R_LIBS_USER"))'
-
-      # 7️⃣ Install R dependencies individually (avoiding tidyverse meta-package compilation issues)
-      - name: Install R dependencies individually
+      - name: Install required R packages
         run: |
-          Rscript -e '
-          options(pkgType="binary")  # prefer binaries on Linux
-          pkgs <- c(
-            "ggplot2", "dplyr", "tidyr", "readr", "purrr",
-            "tibble", "stringr", "forcats", "plotly", "googlesheets4"
-          )
-          install.packages(pkgs, lib = Sys.getenv("R_LIBS_USER"))
-          '
+          Rscript -e "install.packages(c(
+            'tidyverse',
+            'plotly',
+            'googlesheets4'
+          ), lib = Sys.getenv('R_LIBS_USER'), dependencies = TRUE, repos='https://cloud.r-project.org')"
 
-      # 8️⃣ Render Quarto website
       - name: Render Quarto website
         run: quarto render
 
-      # 9️⃣ Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
