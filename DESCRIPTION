@@ -3,9 +3,10 @@ Type: Project
 Title: Quarto Website Dependencies
 Version: 0.1.0
 Description: Dependencies for my Quarto website rendering on GitHub Actions
+Encoding: UTF-8
+LazyData: true
 Imports:
+    remotes,
     tidyverse,
     plotly,
     googlesheets4
-Encoding: UTF-8
-LazyData: true
