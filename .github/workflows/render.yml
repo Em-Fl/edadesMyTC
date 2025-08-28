@@ -49,28 +49,30 @@ jobs:
     # 6️⃣ Install required R packages
     - name: Install R packages
       run: |
-        packages <- c(
-          "googlesheets4",
-          "dplyr",
-          "ggplot2",
-          "tidyr",
-          "tibble",
-          "stringr",
-          "forcats",
-          "purrr",
-          "plotly",
-          "htmlwidgets"
-        )
-        installed <- rownames(installed.packages())
-        to_install <- setdiff(packages, installed)
-        if(length(to_install) > 0) {
-          install.packages(to_install, repos="https://cloud.r-project.org", dependencies = TRUE)
-        }
+        Rscript -e '
+          packages <- c(
+            "googlesheets4",
+            "dplyr",
+            "ggplot2",
+            "tidyr",
+            "tibble",
+            "stringr",
+            "forcats",
+            "purrr",
+            "plotly",
+            "htmlwidgets"
+          );
+          installed <- rownames(installed.packages());
+          to_install <- setdiff(packages, installed);
+          if(length(to_install) > 0) {
+            install.packages(to_install, repos="https://cloud.r-project.org", dependencies=TRUE)
+          }
+        '
 
-    # 7️⃣ Render Quarto site (will output to docs/)
+    # 7️⃣ Render Quarto site (outputs to docs/ via _quarto.yml)
     - name: Render Quarto
       run: |
-        quarto render . --to html
+        quarto render .
 
     # 8️⃣ Deploy docs/ to GitHub Pages
     - name: Deploy to GitHub Pages
