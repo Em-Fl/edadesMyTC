@@ -29,11 +29,11 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ env.R_LIBS_USER }}
-          key: ${{ runner.os }}-r-packages-${{ hashFiles('DESCRIPTION') }}
+          key: ${{ runner.os }}-r-${{ hashFiles('DESCRIPTION') }}
           restore-keys: |
-            ${{ runner.os }}-r-packages-
+            ${{ runner.os }}-r-
 
-      # 5️⃣ Install R dependencies (only missing packages are installed)
+      # 5️⃣ Install R dependencies
       - name: Install R dependencies
         run: |
           Rscript -e 'install.packages(c("tidyverse","plotly","googlesheets4"))'
@@ -48,5 +48,4 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs  # your output folder
-
 
