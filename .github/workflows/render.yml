@@ -13,7 +13,7 @@ jobs:
       R_LIBS_USER: ${{ github.workspace }}/.R/library
 
     steps:
-      # 1️⃣ Checkout repo
+      # 1️⃣ Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -39,15 +39,8 @@ jobs:
       # 5️⃣ Install R dependencies from DESCRIPTION
       - name: Install R dependencies
         run: |
-          # create library folder if it doesn't exist
-          dir.create(Sys.getenv("R_LIBS_USER"), recursive = TRUE, showWarnings = FALSE)
-          
-          # install remotes if missing
-          if (!requireNamespace("remotes", quietly = TRUE)) {
-            install.packages("remotes", lib = Sys.getenv("R_LIBS_USER"))
-          }
-          
-          # install all packages from DESCRIPTION
+          Rscript -e 'dir.create(Sys.getenv("R_LIBS_USER"), recursive = TRUE, showWarnings = FALSE)'
+          Rscript -e 'if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes", lib = Sys.getenv("R_LIBS_USER"))'
           Rscript -e 'remotes::install_deps(dependencies = TRUE, lib = Sys.getenv("R_LIBS_USER"))'
 
       # 6️⃣ Render Quarto website
