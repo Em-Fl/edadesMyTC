@@ -67,7 +67,7 @@ jobs:
 
     # --- Render Quarto document ---
     - name: Render Quarto document
-      run: quarto render edad_estimada.qmd --to html
+      run: quarto render index.qmd --to html
 
     # --- Copy HTML to docs/ for GitHub Pages ---
     - name: Copy HTML to docs/
