@@ -29,21 +29,23 @@ jobs:
           gdebi-core \
           git
 
+
     # --- Cache Quarto ---
     - name: Cache Quarto
       uses: actions/cache@v3
       with:
         path: /usr/local/bin/quarto
-        key: ${{ runner.os }}-quarto-v1
+        key: ${{ runner.os }}-quarto-v1.7.34
         restore-keys: |
           ${{ runner.os }}-quarto-
 
     - name: Install Quarto if missing
       if: steps.cache.outputs.cache-hit != 'true'
       run: |
-        wget https://github.com/quarto-dev/quarto-cli/releases/download/v2.15.15/quarto-2.15.15-linux-amd64.deb
-        sudo gdebi -n quarto-2.15.15-linux-amd64.deb
-        rm quarto-2.15.15-linux-amd64.deb
+        wget https://github.com/quarto-dev/quarto-cli/releases/download/v1.7.34/quarto-1.7.34-linux-amd64.deb
+        sudo gdebi -n quarto-1.7.34-linux-amd64.deb
+        rm quarto-1.7.34-linux-amd64.deb
+
 
     # --- Setup R ---
     - name: Setup R
