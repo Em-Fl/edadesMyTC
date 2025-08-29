@@ -5,6 +5,9 @@ on:
     - cron: "*/60 * * * *" # every 60 minutes
   workflow_dispatch: # allow manual run
 
+permissions:
+  contents: write  # allow pushing changes to the repo
+
 jobs:
   render:
     runs-on: ubuntu-latest
@@ -72,7 +75,7 @@ jobs:
     # --- Render Quarto document ---
     - name: Render Quarto document
       run: quarto render index.qmd --to html
-      # the output will already go to docs/index.html as set in your index.qmd
+      # the output will already go to docs/index.html as set in index.qmd
 
     # --- Commit & push changes to docs/ ---
     - name: Commit and push HTML
@@ -81,7 +84,4 @@ jobs:
         git config user.email "github-actions[bot]@users.noreply.github.com"
         git add docs/index.html
         git commit -m "Update rendered HTML [skip ci]" || echo "No changes to commit"
-        git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+        git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:${{ github.ref }}
