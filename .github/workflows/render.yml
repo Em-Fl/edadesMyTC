@@ -1,20 +1,18 @@
-name: Render Quarto Website
+name: Render QMD
 
 on:
   schedule:
-    - cron: '0 * * * *'  # every hour
-  workflow_dispatch:  # manual trigger
+    - cron: "*/60 * * * *" # every 60 minutes
+  workflow_dispatch: # allow manual run
 
 jobs:
   render:
     runs-on: ubuntu-latest
 
     steps:
-    # 1️⃣ Checkout repository
-    - name: Checkout repository
-      uses: actions/checkout@v3
+    - uses: actions/checkout@v3
 
-    # 2️⃣ Install system dependencies
+    # --- Install system libraries ---
     - name: Install system libraries
       run: |
         sudo apt-get update
@@ -22,57 +20,68 @@ jobs:
           libcurl4-openssl-dev \
           libssl-dev \
           libxml2-dev \
-          libcairo2-dev \
           libfontconfig1-dev \
           libfreetype6-dev \
           libpng-dev \
-          libharfbuzz-dev \
-          libfribidi-dev \
-          libjpeg-dev
+          libjpeg-dev \
+          libcairo2-dev \
+          wget \
+          gdebi-core \
+          git
 
-    # 3️⃣ Setup R
+    # --- Cache Quarto ---
+    - name: Cache Quarto
+      uses: actions/cache@v3
+      with:
+        path: /usr/local/bin/quarto
+        key: ${{ runner.os }}-quarto-v1
+        restore-keys: |
+          ${{ runner.os }}-quarto-
+
+    - name: Install Quarto if missing
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: |
+        wget https://github.com/quarto-dev/quarto-cli/releases/download/v2.15.15/quarto-2.15.15-linux-amd64.deb
+        sudo gdebi -n quarto-2.15.15-linux-amd64.deb
+        rm quarto-2.15.15-linux-amd64.deb
+
+    # --- Setup R ---
     - name: Setup R
       uses: r-lib/actions/setup-r@v2
       with:
-        r-version: '4.3.1'
+        r-version: '4.3'
 
-    # 4️⃣ Setup Quarto
-    - name: Setup Quarto
-      uses: quarto-dev/quarto-actions/setup@v2
-
-    # 5️⃣ Cache R packages
+    # --- Cache R packages ---
     - name: Cache R packages
       uses: actions/cache@v3
       with:
         path: ${{ env.R_LIBS_USER }}
-        key: ${{ runner.os }}-r-packages-${{ hashFiles('**/*.qmd', '_quarto.yml') }}
+        key: ${{ runner.os }}-r-packages-${{ hashFiles('**/*.qmd') }}
         restore-keys: |
           ${{ runner.os }}-r-packages-
 
-    # 6️⃣ Install required R packages
-    - name: Install R packages
+    # --- Install required R packages ---
+    - name: Install required R packages
       run: |
-        Rscript -e '
-          packages <- c(
-            "googlesheets4",
-            "dplyr",
-            "plotly"
-          );
-          installed <- rownames(installed.packages());
-          to_install <- setdiff(packages, installed);
-          if(length(to_install) > 0) {
-            install.packages(to_install, repos="https://cloud.r-project.org", dependencies=TRUE)
-          }
-        '
+        install.packages(c("googlesheets4", "plotly"))
 
-    # 7️⃣ Render Quarto site (outputs to docs/ via _quarto.yml)
-    - name: Render Quarto
+    # --- Render Quarto document ---
+    - name: Render Quarto document
+      run: quarto render edad_estimada.qmd --to html
+
+    # --- Copy HTML to docs/ for GitHub Pages ---
+    - name: Copy HTML to docs/
       run: |
-        quarto render .
+        mkdir -p docs
+        cp _site/*.html docs/index.html
 
-    # 8️⃣ Deploy docs/ to GitHub Pages
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs
+    # --- Commit & push changes to docs/ ---
+    - name: Commit and push HTML
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add docs/index.html
+        git commit -m "Update rendered HTML [skip ci]" || echo "No changes to commit"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
