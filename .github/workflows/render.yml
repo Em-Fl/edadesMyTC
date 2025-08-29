@@ -12,6 +12,10 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    # --- List files to verify index.qmd exists ---
+    - name: List files
+      run: ls -R
+
     # --- Install system libraries ---
     - name: Install system libraries
       run: |
@@ -68,12 +72,7 @@ jobs:
     # --- Render Quarto document ---
     - name: Render Quarto document
       run: quarto render index.qmd --to html
-
-    # --- Copy HTML to docs/ for GitHub Pages ---
-    - name: Copy HTML to docs/
-      run: |
-        mkdir -p docs
-        cp _site/*.html docs/index.html
+      # the output will already go to docs/index.html as set in your index.qmd
 
     # --- Commit & push changes to docs/ ---
     - name: Commit and push HTML
@@ -85,3 +84,4 @@ jobs:
         git push
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
