@@ -29,7 +29,6 @@ jobs:
           gdebi-core \
           git
 
-
     # --- Cache Quarto ---
     - name: Cache Quarto
       uses: actions/cache@v3
@@ -45,7 +44,6 @@ jobs:
         wget https://github.com/quarto-dev/quarto-cli/releases/download/v1.7.34/quarto-1.7.34-linux-amd64.deb
         sudo gdebi -n quarto-1.7.34-linux-amd64.deb
         rm quarto-1.7.34-linux-amd64.deb
-
 
     # --- Setup R ---
     - name: Setup R
@@ -65,7 +63,7 @@ jobs:
     # --- Install required R packages ---
     - name: Install required R packages
       run: |
-        install.packages(c("googlesheets4", "plotly"))
+        R -e 'install.packages(c("googlesheets4", "plotly"), repos="https://cloud.r-project.org")'
 
     # --- Render Quarto document ---
     - name: Render Quarto document
