@@ -5,8 +5,7 @@ format: html
 
 # Bienvenidos a la actividad 'Adivinando edades'
 
-A continuación encontrarás un conjunto de fotos. Selecciona los links para indicar qué edad piensas que tienen las personas
-------------------------------------------------------------------------
+## A continuación encontrarás las fotos y las estimaciones de edad de todos los estudiantes de seminarios de cuanti.
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 # --- Load packages ---
@@ -16,28 +15,24 @@ library(googlesheets4)
 library(plotly)
 
 # --- Load data from Google Sheets ---
-sheet_url <- "https://docs.google.com/spreadsheets/d/1Af5_4F3JKp_iCsAC8mxVnmZp8_DdzicnO7Af384txZ4"
-
+sheet_url <- "https://docs.google.com/spreadsheets/d/1rCIt7aM9HHY5gxjWZVtqXMmn-m4CEI85U_n6u5dpWsI"
 # Skip authentication for public sheet
 gs4_deauth()
 
-read_sheet_safe <- function(sheet_name) {
-  df <- read_sheet(sheet_url, sheet = sheet_name)
-  # Keep only relevant columns
-  df <- df[, c("Tus iniciales (dos letras)", "¿Qué edad tiene?")]
-  names(df) <- c("initials", "age")
-  df$age <- as.numeric(df$age)
-  df <- df[!is.na(df$age) & df$age > 0 & df$age < 120, ]
-  df$Group <- sheet_name
+
+# Read the single sheet and keep only relevant columns
+read_sheet_safe <- function(sheet_url) {
+  df <- read_sheet(sheet_url, sheet = "Edades")
+  # Keep only columns for plotting
+  df <- df[, c("Tus iniciales (dos letras)", 'CH','PM',	'LI',	'MM',	'FV',	'GH',	'PP',	'YG',	'OR',	'TR',	'BA',	'AW')]
   return(df)
 }
 
-dc_data <- read_sheet_safe("DC")
-cm_data <- read_sheet_safe("CM")
-all_data <- rbind(dc_data, cm_data)
-
 # --- Plotting function ---
-create_plots <- function(df, title) {
+create_plots <- function(df, group_col, title) {
+  df <- df[!is.na(df[[group_col]]), ]  # Remove NAs
+  df$age <- as.numeric(df[[group_col]]) # Convert to numeric
+  
   mean_age <- mean(df$age)
   median_age <- median(df$age)
   var_age <- var(df$age)
@@ -79,43 +74,214 @@ create_plots <- function(df, title) {
            layout(title = title))
 }
 
-plots_dc <- create_plots(all_data[all_data$Group=="DC",], "DC: Distribución de edades")
-plots_cm <- create_plots(all_data[all_data$Group=="CM",], "CM: Distribución de edades")
+# Example usage:
+all_data <- read_sheet_safe(sheet_url)
+
+plots_ch <- create_plots(all_data, "CH", "CH: Distribución de edades")
+plots_pm <- create_plots(all_data, "PM", "PM: Distribución de edades")
+plots_li <- create_plots(all_data, "LI", "LI: Distribución de edades")
+plots_mm <- create_plots(all_data, "MM", "MM: Distribución de edades")
+plots_fv <- create_plots(all_data, "FV", "FV: Distribución de edades")
+plots_gh <- create_plots(all_data, "GH", "GH: Distribución de edades")
+plots_pp <- create_plots(all_data, "PP", "PP: Distribución de edades")
+plots_yg <- create_plots(all_data, "YG", "YG: Distribución de edades")
+plots_or <- create_plots(all_data, "OR", "OR: Distribución de edades")
+plots_tr <- create_plots(all_data, "TR", "TR: Distribución de edades")
+plots_ba <- create_plots(all_data, "BA", "BA: Distribución de edades")
+plots_aw <- create_plots(all_data, "AW", "AW: Distribución de edades")
 
 ```
 
 ------------------------------------------------------------------------
 
-## DC
+## ¿Qué edad tiene CH?
 
-![DC](images/DC_19.jpg)
+![CH](images/CH_49.jpeg)
 
-[¿Qué edad tiene DC?](https://docs.google.com/forms/d/e/1FAIpQLSeRYPxegq2BLlMnuyNononGdwGwAtuFgRudS3lgUBV5M_xvZw/viewform?usp=pp_url&entry.1674617589)
 
 <details>
 
 <summary>Mostrar gráficos de todas las estimaciones</summary>
 
 ```{r, echo=FALSE}
-plots_dc
+plots_ch
 ```
 
 </details>
 
 ------------------------------------------------------------------------
 
-## CM
+## ¿Qué edad tiene PM?
 
-![CM](images/CM_25.jpg)
 
-[¿Qué edad tiene CM?](https://docs.google.com/forms/d/e/1FAIpQLScoD5wOyHaf8Rb26P01ogBlIpkBkssDnjvRbMHtGgYu9wKU-w/viewform?usp=pp_url&entry.1674617589)
+![PM](images/PM_10.jpeg)
 
 <details>
 
 <summary>Mostrar gráficos de todas las estimaciones</summary>
 
 ```{r, echo=FALSE}
-plots_cm
+plots_pm
+```
+
+</details>
+
+
+------------------------------------------------------------------------
+
+## ¿Qué edad tiene LI?
+
+
+![LI](images/LI_45.jpeg)
+<details>
+
+<summary>Mostrar gráficos de todas las estimaciones</summary>
+
+```{r, echo=FALSE}
+plots_li
+```
+
+</details>
+------------------------------------------------------------------------
+
+## ¿Qué edad tiene MM?
+
+
+![MM](images/MM_63.jpeg)
+<details>
+
+<summary>Mostrar gráficos de todas las estimaciones</summary>
+
+```{r, echo=FALSE}
+plots_mm
+```
+
+</details>
+
+------------------------------------------------------------------------
+
+## ¿Qué edad tiene FV?
+
+
+![FV](images/FV_17.jpeg)
+<details>
+
+<summary>Mostrar gráficos de todas las estimaciones</summary>
+
+```{r, echo=FALSE}
+plots_fv
+```
+
+</details>
+
+------------------------------------------------------------------------
+
+## ¿Qué edad tiene GH?
+
+
+![GH](images/GH_76.jpeg)
+<details>
+
+<summary>Mostrar gráficos de todas las estimaciones</summary>
+
+```{r, echo=FALSE}
+plots_gh
+```
+
+</details>
+
+------------------------------------------------------------------------
+
+## ¿Qué edad tiene PP?
+
+
+![PP](images/PP_13.jpeg)
+<details>
+
+<summary>Mostrar gráficos de todas las estimaciones</summary>
+
+```{r, echo=FALSE}
+plots_pp
+```
+
+</details>
+
+------------------------------------------------------------------------
+
+## ¿Qué edad tiene YG?
+
+
+![YG](images/YG_25.jpeg)
+<details>
+
+<summary>Mostrar gráficos de todas las estimaciones</summary>
+
+```{r, echo=FALSE}
+plots_yg
+```
+
+</details>
+
+------------------------------------------------------------------------
+
+## ¿Qué edad tiene OR?
+
+
+![OR](images/OR_77.jpeg)
+<details>
+
+<summary>Mostrar gráficos de todas las estimaciones</summary>
+
+```{r, echo=FALSE}
+plots_or
+```
+
+</details>
+
+------------------------------------------------------------------------
+
+## ¿Qué edad tiene TR?
+
+
+![TR](images/TR_37.jpeg)
+<details>
+
+<summary>Mostrar gráficos de todas las estimaciones</summary>
+
+```{r, echo=FALSE}
+plots_tr
+```
+
+</details>
+
+------------------------------------------------------------------------
+
+## ¿Qué edad tiene BA?
+
+
+![BA](images/BA_02.jpeg)
+<details>
+
+<summary>Mostrar gráficos de todas las estimaciones</summary>
+
+```{r, echo=FALSE}
+plots_ba
+```
+
+</details>
+
+------------------------------------------------------------------------
+
+## ¿Qué edad tiene AW?
+
+
+![AW](images/AW_24.jpeg)
+<details>
+
+<summary>Mostrar gráficos de todas las estimaciones</summary>
+
+```{r, echo=FALSE}
+plots_aw
 ```
 
 </details>
