@@ -1,5 +1,12 @@
 [
   {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this site\n\n1 + 1\n\n[1] 2"
+  },
+  {
     "objectID": "index.html",
     "href": "index.html",
     "title": "¿Qué tan bueno sos estimando la edad de las personas?",
@@ -19,12 +26,5 @@
     "title": "¿Qué tan bueno sos estimando la edad de las personas?",
     "section": "",
     "text": "CM\n\n\n¿Qué edad tiene CM?\n\n\nMostrar gráficos de todas las estimaciones"
-  },
-  {
-    "objectID": "about.html",
-    "href": "about.html",
-    "title": "About",
-    "section": "",
-    "text": "About this site\n\n1 + 1\n\n[1] 2"
   }
 ]
