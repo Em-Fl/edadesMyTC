@@ -1,11 +1,11 @@
 ---
-title: "¿Qué tan bueno sos estimando la edad de las personas?"
+title: "Adivinando edades"
 format: html
 ---
 
 # Bienvenidos a la actividad 'Adivinando edades'
 
-## A continuación encontrarás las fotos y las estimaciones de edad de todos los estudiantes de seminarios de cuanti.
+## A continuación encontrarás las estimaciones de edad de todos los estudiantes de seminarios de cuanti.
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 # --- Load packages ---

@@ -2,8 +2,9 @@
 title: "About"
 ---
 
-About this site
-
+Acerca de este sitio  
 ```{r}
-1 + 1
+"Sitio web generado por Emilia Fló para el curso de Métodos y Técnicas Cuantitativas de la Facultad de Psicología, 2025." 
+
+"Los datos se actualizan cada una hora"
 ```
