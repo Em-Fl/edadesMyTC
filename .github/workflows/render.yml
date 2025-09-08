@@ -2,7 +2,7 @@ name: Render QMD
 
 on:
   schedule:
-    - cron: "*/60 * * * *" # every 60 minutes
+    - cron: "*/20 * * * *" # every 60 minutes
   workflow_dispatch: # allow manual run
 
 permissions:
